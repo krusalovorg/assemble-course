@@ -1,5 +1,8 @@
 ﻿#include <iostream>
 #include <string>
+#define _USE_MATH_DEFINES
+#include <math.h>
+#include <cmath>
 
 void printMenu() {
     setlocale(LC_ALL, "ru-RU");
@@ -39,12 +42,15 @@ void readDouble(double& value, std::string name) {
 // ctg(a) = 1/tg(a), tg(a) = 0 если a=kpi
 // деление на 0 если a=0 b=0
 
-double calc(double a, double b) {
+double calc_asm(double a, double b, bool* hasError) {
     double res;
     int status;
     const int c42 = 42;
 
     __asm {
+        mov esi, hasError;
+        mov byte ptr[esi], 0;
+
         finit; init FPU
 
         ; 42 * pi
@@ -115,10 +121,39 @@ double calc(double a, double b) {
         fstp qword ptr[res];
         jmp done
     error:
-        fldz;res=0.0
-        fstp qword ptr[res]
+        fldz; res = 0.0
+        fstp qword ptr[res];
+        mov byte ptr[esi], 1;
     done:
     }
+    return res;
+}
+
+double calc_cpp(double a, double b, bool& hasError) {
+    hasError = 0;
+    const double c42 = 42.0;
+    const double eps = 1e-12;
+
+    double t = std::tan(a);
+    if (std::fabs(t) < eps) {
+        hasError = true;
+        return 0.0;
+    }
+
+    double denom = c42 * a - b;
+    if (std::fabs(denom) < eps) {
+        hasError = true;
+        return 0.0;
+    }
+
+    double res =
+        c42 * M_PI
+        - std::sin(b)
+        - std::cos(b)
+        - std::tan(a)
+        - (1.0 / std::tan(a))
+        - (M_PI * (c42 * b + a) / denom);
+
     return res;
 }
 
@@ -131,7 +166,19 @@ int main()
     readDouble(b, "b");
 
 
-    std::cout << "Результат выполенения функции x = " << calc(a,b) << std::endl;
+    bool asmErr = false;
+    double asmRes = calc_asm(a, b, &asmErr);
+
+    bool cppErr = false;
+    double cppRes = calc_cpp(a, b, cppErr);
+
+    std::cout << "Результат выполнения функции:\n";
+
+    if (!asmErr) std::cout << "ASM: " << asmRes << "\n";
+    else std::cout << "ASM: ошибка (деление на 0)\n";
+
+    if (!cppErr) std::cout << "CPP: " << cppRes << "\n";
+    else std::cout << "CPP: ошибка (деление на 0)\n";
 
     system("pause");
 }

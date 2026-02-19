@@ -37,7 +37,7 @@ void readInt(int& value, std::string name) {
 // 42)	В одномерном массиве A={a[i]} целых чисел 
 // вычислить сумму элементов с нечетными номерами.
 
-int calc(int* arr, int n) {
+int calc_asm(int* arr, int n) {
     __asm {
         xor esi, esi; индекс
         xor eax, eax; сумма эл
@@ -57,12 +57,21 @@ int calc(int* arr, int n) {
     }
 }
 
-int main()
-{
+int calc_cpp(int* arr, int n) {
+    int sum = 0;
+    for (int i = 1; i < n; i += 2) {
+        sum += arr[i];
+    }
+    return sum;
+}
+
+
+int main() {
     printMenu();
 
     int n;
     readInt(n, "n");
+
     int* arr = new int[n];
 
     for (int i = 0; i < n; i++) {
@@ -71,12 +80,14 @@ int main()
         arr[i] = v;
     }
 
-    try {
-        std::cout << "Результат выполенения функции: " << calc(arr, n) << std::endl;
-    }
-    catch (const std::exception& e) {
-        std::cerr << e.what() << std::endl;
-    }
+    int asmRes = calc_asm(arr, n);
+    int cppRes = calc_cpp(arr, n);
 
+    std::cout << "Результат выполнения функции:\n";
+    std::cout << "ASM: " << asmRes << "\n";
+    std::cout << "CPP: " << cppRes << "\n";
+
+    delete[] arr;
     system("pause");
+    return 0;
 }

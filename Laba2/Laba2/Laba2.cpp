@@ -37,10 +37,12 @@ void readInt(int& value, std::string name) {
 // -a, a == b
 // (a*b-5)/(a+b), a<b
 
-int calcX(int a, int b) {
+int calc_asm(int a, int b, bool* hasError) {
     __asm {
         mov ecx, a
         mov ebx, b
+        mov esi, hasError
+        mov byte ptr[esi], 0;
 
         cmp ecx, ebx
         jg A_BIGGER
@@ -78,11 +80,39 @@ int calcX(int a, int b) {
         jmp DONE
     IMUL_OVERFLOW:
         xor eax, eax
+        mov byte ptr[esi], 1
     DIV_ZERO:
         xor eax, eax
+        mov byte ptr[esi], 1;
     DONE:
     }
 }
+
+int calc_cpp(int a, int b, bool& hasError) {
+    hasError = false;
+
+    if (a > b) {
+        if (b == 0) {
+            hasError = true;
+            return 0;
+        }
+        return a / b - a;
+    }
+
+    if (a == b) {
+        return -a;
+    }
+
+    int den = a + b;
+    if (den == 0) {
+        hasError = true;
+        return 0;
+    }
+
+    int num = a * b - 5;
+    return num / den;
+}
+
 
 int main()
 {
@@ -92,12 +122,18 @@ int main()
     readInt(a, "a");
     readInt(b, "b");
 
-    try {
-        std::cout << "Результат выполенения функции calc: " << calcX(a, b) << std::endl;
-    }
-    catch (const std::exception& e) {
-        std::cerr << e.what() << std::endl;
-    }
+    std::cout << "Результат выполенения функций " << std::endl;
+    bool asmError = false;
+    int resAsm = calc_asm(a, b, &asmError);
+    if (!asmError) std::cout << "ASM: " << resAsm << "\n";
+    else std::cout << "ASM: ошибка (деление на 0)\n";
+
+
+    bool cppError = false;
+    int resCpp = calc_cpp(a, b, cppError);
+    if (!cppError) std::cout << "CPP: " << resCpp << "\n";
+    else std::cout << "CPP: ошибка (деление на 0)\n";
+
 
     system("pause");
 }
