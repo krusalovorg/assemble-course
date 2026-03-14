@@ -1,11 +1,11 @@
-﻿#include <iostream>
-#include <string>
 #define _USE_MATH_DEFINES
-#include <math.h>
 #include <cmath>
+#include <iostream>
+#include <string>
+#include <stdexcept>
 
 void printMenu() {
-    setlocale(LC_ALL, "ru-RU");
+    setlocale(LC_ALL, "ru_RU");
     std::cout << "\033[33m";
     std::cout << "     Лабораторная работа ";
     std::cout << "\033[1;31m04\033[33m\n";
@@ -19,6 +19,8 @@ void printMenu() {
 
     std::cout << "Вариант задания: ";
     std::cout << "\033[1;31m42\033[0m\n\n";
+
+    std::cout << "Задание: X = 42*pi - sin(b) - cos(-b) - tg(a) - ctg(a) - pi * (42 * b + a)/(42 * a - b)\n\n";
 }
 
 void readDouble(double& value, std::string name) {
@@ -42,15 +44,13 @@ void readDouble(double& value, std::string name) {
 // ctg(a) = 1/tg(a), tg(a) = 0 если a=kpi
 // деление на 0 если a=0 b=0
 
-double calc_asm(double a, double b, bool* hasError) {
+double calc(double a, double b) {
     double res;
     int status;
+    int error = 0;
     const int c42 = 42;
 
     __asm {
-        mov esi, hasError;
-        mov byte ptr[esi], 0;
-
         finit; init FPU
 
         ; 42 * pi
@@ -83,10 +83,10 @@ double calc_asm(double a, double b, bool* hasError) {
         fstsw status; FPU status word сохраняем в status
         mov ah, byte ptr[status + 1]
         sahf
-        je error; если tg(a) == 0, то ошибка
+        je error_tg; если tg(a) == 0, то ошибка
 
         fld1
-        fdivrp st(1), st; 1/tg(a) | ...
+        fdivrp st(1), st; 1 / tg(a) | ...
         fsubp st(1), st; 42 * pi - sin(b) - cos(b) - tg(a) - ctg(a)
 
         ; 42 * b + a
@@ -107,54 +107,55 @@ double calc_asm(double a, double b, bool* hasError) {
         fstsw status
         mov ah, byte ptr[status + 1]
         sahf
-        je error; если denom == 0, то ошибка
+        je error_denom; если denom == 0, то ошибка
 
 
-        ; (42 * b + a)/(42 * a - b)
+        ; (42 * b + a) / (42 * a - b)
         fdivp st(1), st; (42 * b + a) / (42 * a - b) | 42 * pi - sin(b) - cos(b) - tg(a) - ctg(a)
 
         ; res
         fldpi; pi | (42 * b + a) / (42 * a - b) | 42 * pi - sin(b) - cos(b) - tg(a) - ctg(a)
-        fmulp st(1), st; pi * (42 * b + a) / (42 * a - b) | 42 * pi - sin(b) - cos(b) - tg(a) - ctg(a)
+        fmulp st(1), st; pi* (42 * b + a) / (42 * a - b) | 42 * pi - sin(b) - cos(b) - tg(a) - ctg(a)
         fsubp st(1), st; 42 * pi - sin(b) - cos(b) - tg(a) - ctg(a) - pi * (42 * b + a) / (42 * a - b)
 
         fstp qword ptr[res];
         jmp done
-    error:
-        fldz; res = 0.0
-        fstp qword ptr[res];
-        mov byte ptr[esi], 1;
-    done:
+            error_tg :
+        mov error, 1
+            finit
+            fldz
+            fstp qword ptr[res]
+            jmp done
+            error_denom :
+        mov error, 2
+            finit
+            fldz
+            fstp qword ptr[res]
+            done :
+    }
+
+    if (error == 1) {
+        throw std::invalid_argument("ОШИБКА: Деление на ноль! (tg(a)=0, ctg не определён)");
+    }
+    if (error == 2) {
+        throw std::invalid_argument("ОШИБКА: Деление на ноль! (42*a-b=0)");
     }
     return res;
 }
 
-double calc_cpp(double a, double b, bool& hasError) {
-    hasError = 0;
-    const double c42 = 42.0;
-    const double eps = 1e-12;
+double calcCpp(double a, double b) {
+    const double denom = 42.0 * a - b;
+    double tgA = std::tan(a);
 
-    double t = std::tan(a);
-    if (std::fabs(t) < eps) {
-        hasError = true;
-        return 0.0;
+    if (tgA == 0.0) {
+        throw std::invalid_argument("ОШИБКА: Деление на ноль! (tg(a)=0, ctg не определён)");
+    }
+    if (denom == 0.0) {
+        throw std::invalid_argument("ОШИБКА: Деление на ноль! (42*a-b=0)");
     }
 
-    double denom = c42 * a - b;
-    if (std::fabs(denom) < eps) {
-        hasError = true;
-        return 0.0;
-    }
-
-    double res =
-        c42 * M_PI
-        - std::sin(b)
-        - std::cos(b)
-        - std::tan(a)
-        - (1.0 / std::tan(a))
-        - (M_PI * (c42 * b + a) / denom);
-
-    return res;
+    return 42.0 * M_PI - std::sin(b) - std::cos(-b) - tgA - 1.0 / tgA
+        - M_PI * (42.0 * b + a) / denom;
 }
 
 int main()
@@ -165,20 +166,20 @@ int main()
     readDouble(a, "a");
     readDouble(b, "b");
 
-
-    bool asmErr = false;
-    double asmRes = calc_asm(a, b, &asmErr);
-
-    bool cppErr = false;
-    double cppRes = calc_cpp(a, b, cppErr);
-
-    std::cout << "Результат выполнения функции:\n";
-
-    if (!asmErr) std::cout << "ASM: " << asmRes << "\n";
-    else std::cout << "ASM: ошибка (деление на 0)\n";
-
-    if (!cppErr) std::cout << "CPP: " << cppRes << "\n";
-    else std::cout << "CPP: ошибка (деление на 0)\n";
+    try {
+        std::cout << "ASM: " << calc(a, b);
+    }
+    catch (const std::invalid_argument& e) {
+        std::cout << e.what();
+    }
+    std::cout << std::endl;
+    try {
+        std::cout << "CPP: " << calcCpp(a, b);
+    }
+    catch (const std::invalid_argument& e) {
+        std::cout << e.what();
+    }
+    std::cout << std::endl;
 
     system("pause");
 }
