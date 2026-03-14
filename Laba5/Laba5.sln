@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35431.28
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Laba5", "Laba5\Laba5.vcxproj", "{D5A0105A-C1AC-4F90-A038-D21166B3376E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D5A0105A-C1AC-4F90-A038-D21166B3376E}.Debug|x64.ActiveCfg = Debug|x64
+		{D5A0105A-C1AC-4F90-A038-D21166B3376E}.Debug|x64.Build.0 = Debug|x64
+		{D5A0105A-C1AC-4F90-A038-D21166B3376E}.Debug|x86.ActiveCfg = Debug|Win32
+		{D5A0105A-C1AC-4F90-A038-D21166B3376E}.Debug|x86.Build.0 = Debug|Win32
+		{D5A0105A-C1AC-4F90-A038-D21166B3376E}.Release|x64.ActiveCfg = Release|x64
+		{D5A0105A-C1AC-4F90-A038-D21166B3376E}.Release|x64.Build.0 = Release|x64
+		{D5A0105A-C1AC-4F90-A038-D21166B3376E}.Release|x86.ActiveCfg = Release|Win32
+		{D5A0105A-C1AC-4F90-A038-D21166B3376E}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BC46A6A3-1957-4DED-BF9A-2AF45FC46016}
+	EndGlobalSection
+EndGlobal
