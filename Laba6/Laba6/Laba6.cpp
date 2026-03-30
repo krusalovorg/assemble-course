@@ -11,7 +11,6 @@
 #include <cstddef>
 #include <stdexcept>
 #include <string>
-#include <vector>
 
 /*
   Лабораторная работа №6. Вариант 43.
@@ -103,20 +102,17 @@ double simpson_cpp(double a, double b, int n) {
 }
 
 double simpson_asm(double a, double b, int n,
-                   std::vector<double>& vx,
-                   std::vector<double>& vf,
-                   std::vector<int>& vc) {
+                   double* vx,
+                   double* vf,
+                   int* vc) {
     if (n <= 0)
         throw std::invalid_argument("число интервалов N должно быть > 0");
 
     int m = 2 * n;
-    vx.resize(static_cast<std::size_t>(m) + 1u);
-    vf.resize(static_cast<std::size_t>(m) + 1u);
-    vc.resize(static_cast<std::size_t>(m) + 1u);
 
-    double* pvx = vx.data();
-    double* pvf = vf.data();
-    int* pvc = vc.data();
+    double* pvx = vx;
+    double* pvf = vf;
+    int* pvc = vc;
 
     double h = 0.0;
     double xi = 0.0;
@@ -267,6 +263,15 @@ double simpson_asm(double a, double b, int n,
     return result;
 }
 
+double F_cpp(double x) {
+    if (x < 0.0)
+        throw std::domain_error("F(x): аргумент x должен быть >= 0");
+    const double out = x * x + 6.0 * std::sqrt(x);
+    if (!finiteVal(out))
+        throw std::runtime_error("F(x): результат не является конечным числом");
+    return out;
+}
+
 void printHeader() {
     std::setlocale(LC_ALL, "ru_RU");
     std::cout << "\033[33m";
@@ -326,6 +331,40 @@ static void printBorder(int wi, int wx, int wf, int wc) {
     std::cout << "+\n";
 }
 
+void printSimpsonStep(const char* title,
+                      double h, int m,
+                      const double* fvals,
+                      double result) {
+    std::cout << "\nПошаговый расчет интеграла по формуле Симпсона (" << title << "):\n";
+    std::cout << "I = (h / 3) * [ (f(a) + f(b)) + 4 * (";
+
+    bool firstOdd = true;
+    bool firstEven = true;
+    double sumOdd = 0.0;
+    double sumEven = 0.0;
+
+    for (int i = 1; i < m; i += 2) {
+        if (!firstOdd) std::cout << " + ";
+        std::cout << fvals[i];
+        firstOdd = false;
+        sumOdd += fvals[i];
+    }
+
+    std::cout << ") + 2 * (";
+
+    for (int i = 2; i < m; i += 2) {
+        if (!firstEven) std::cout << " + ";
+        std::cout << fvals[i];
+        firstEven = false;
+        sumEven += fvals[i];
+    }
+
+    std::cout << ") ]\n";
+    std::cout << "  = (" << h << " / 3) * [ (" << fvals[0] << " + " << fvals[m]
+              << ") + 4 * (" << sumOdd << ") + 2 * (" << sumEven << ") ]\n";
+    std::cout << "  = " << result << "\n";
+}
+
 int main() {
     std::cout << std::fixed;
     std::cout.precision(15);
@@ -338,6 +377,11 @@ int main() {
     readDouble(b, "Верхний предел b = ");
     readInt(n,    "Число интервалов разбиения N = ");
 
+    double* vx = nullptr;
+    double* vf_asm = nullptr;
+    double* vf_cpp = nullptr;
+    int* vc = nullptr;
+
     try {
         if (b <= a)
             throw std::invalid_argument("b должно быть больше a.");
@@ -346,39 +390,64 @@ int main() {
 
         const int m = 2 * n;
 
-        std::vector<double> vx, vf;
-        std::vector<int> vc;
+        vx = new double[m + 1];
+        vf_asm = new double[m + 1];
+        vf_cpp = new double[m + 1];
+        vc = new int[m + 1];
 
-        const double result_asm = simpson_asm(a, b, n, vx, vf, vc);
+        const double result_asm = simpson_asm(a, b, n, vx, vf_asm, vc);
+        const double h = (b - a) / static_cast<double>(m);
+        for (int j = 0; j <= m; j++) {
+            vf_cpp[j] = f_cpp(vx[j]);
+        }
+        const double result_cpp = simpson_cpp(a, b, n);
 
-        const int wi = 4, wx = 22, wf = 24, wc = 6;
+        const int wi = 4, wx = 16, wf = 18;
 
         std::cout << "\n\033[1mТаблица расчётов:\033[0m\n";
-        printBorder(wi, wx, wf, wc);
+        printBorder(wi, wx, wf, wf);
         std::cout << "| " << std::setw(wi) << "i"
                   << " | " << std::setw(wx) << "x_i"
-                  << " | " << std::setw(wf) << "f(x_i)"
-                  << " | " << std::setw(wc) << "coeff"
+                  << " | " << std::setw(wf) << "f_asm(x_i)"
+                  << " | " << std::setw(wf) << "f_cpp(x_i)"
                   << " |\n";
-        printBorder(wi, wx, wf, wc);
+        printBorder(wi, wx, wf, wf);
 
         for (int j = 0; j <= m; j++) {
             std::cout << "| " << std::setw(wi) << j
                       << " | " << std::setw(wx) << vx[j]
-                      << " | " << std::setw(wf) << vf[j]
-                      << " | " << std::setw(wc) << vc[j]
+                      << " | " << std::setw(wf) << vf_asm[j]
+                      << " | " << std::setw(wf) << vf_cpp[j]
                       << " |\n";
         }
-        printBorder(wi, wx, wf, wc);
+        printBorder(wi, wx, wf, wf);
 
-        const double result_cpp = simpson_cpp(a, b, n);
+        printSimpsonStep("ASM", h, m, vf_asm, result_asm);
+        printSimpsonStep("C++", h, m, vf_cpp, result_cpp);
 
-        std::cout << "\n\033[1mИтог:\033[0m\n";
-        std::cout << "  ASM: " << result_asm << "\n";
-        std::cout << "  C++: " << result_cpp << "\n";
+        const double exact = std::fabs(F_cpp(b) - F_cpp(a));
+        const double err_asm = std::fabs(exact - result_asm);
+        const double err_cpp = std::fabs(exact - result_cpp);
+        const double diff_asm_cpp = std::fabs(result_asm - result_cpp);
+
+        std::cout << "\n=== Сравнение результатов ===\n";
+        std::cout << "Asm результат        : " << result_asm << "\n";
+        std::cout << "C++ результат        : " << result_cpp << "\n";
+        std::cout << "Точное значение      : " << exact << "\n\n";
+        std::cout << "Разность (Asm - C++) : " << diff_asm_cpp << "\n";
+        std::cout << "Погрешность Asm      : " << err_asm << "\n";
+        std::cout << "Погрешность C++      : " << err_cpp << "\n";
 
         std::cout << '\n';
+        delete[] vc; vc = nullptr;
+        delete[] vf_cpp; vf_cpp = nullptr;
+        delete[] vf_asm; vf_asm = nullptr;
+        delete[] vx; vx = nullptr;
     } catch (const std::exception& e) {
+        delete[] vc;
+        delete[] vf_cpp;
+        delete[] vf_asm;
+        delete[] vx;
         std::cout << "\n\033[1;31mОшибка:\033[0m " << e.what() << "\n";
         system("pause");
         return 1;
