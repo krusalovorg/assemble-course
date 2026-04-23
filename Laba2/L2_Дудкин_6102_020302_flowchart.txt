@@ -1,0 +1,79 @@
+MERMAID (ГОСТ-стиль): часть 1
+
+```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "fontFamily": "Times New Roman",
+    "fontSize": "14px",
+    "primaryColor": "#ffffff",
+    "primaryTextColor": "#000000",
+    "primaryBorderColor": "#000000",
+    "lineColor": "#000000",
+    "secondaryColor": "#ffffff",
+    "tertiaryColor": "#ffffff",
+    "background": "#ffffff"
+  },
+  "flowchart": {
+    "curve": "basis",
+    "nodeSpacing": 22,
+    "rankSpacing": 28
+  }
+}}%%
+flowchart TD
+    S(["начало"])
+    IN[/"ввод a, b"/]
+    INIT["mov ecx,a; mov ebx,b; mov esi,hasError; hasError=0"]
+    CMP{"cmp ecx, ebx"}
+
+    AB_DZ{"b == 0"}
+    AB_DIV["cdq; idiv ebx; eax = a/b"]
+    AB_SUB["sub eax, ecx; x = a/b-a"]
+
+    EQ_RES["mov eax, ecx; neg eax; x = -a"]
+
+    SM_MUL["mov eax, ecx; imul eax, ebx; a*b"]
+    SM_OV{"OF == 1"}
+    SM_SUB["sub eax, 5; num = a*b-5"]
+    SM_DEN["mov edi, ecx; add edi, ebx; den = a+b"]
+    C2_END((2))
+
+    ERR_ZERO["xor eax, eax; hasError=1"]
+    C1_END((1))
+
+    S --> IN --> INIT --> CMP
+    CMP -- ">" --> AB_DZ
+    CMP -- "==" --> EQ_RES --> C1_END
+    CMP -- "<" --> SM_MUL
+
+    AB_DZ -- да --> ERR_ZERO --> C1_END
+    AB_DZ -- нет --> AB_DIV --> AB_SUB --> C1_END
+
+    SM_MUL --> SM_OV
+    SM_OV -- да --> ERR_ZERO
+    SM_OV -- нет --> SM_SUB --> SM_DEN --> C2_END
+```
+
+MERMAID (ГОСТ-стиль): часть 2
+
+```mermaid
+flowchart TD
+    C2_START((2))
+    C1_START((1))
+
+    SM_DZ{"den == 0"}
+    SM_DIV["cdq; idiv edi; x = (a*b-5)/(a+b)"]
+
+    SHOW{"asmError == 0"}
+    POK[/"вывести ASM: result"/]
+    PERR[/"вывести ASM: ошибка (деление на 0 или overflow)"/]
+    E(["конец"])
+
+    C2_START --> SM_DZ
+    SM_DZ -- да --> C1_START
+    SM_DZ -- нет --> SM_DIV --> C1_START
+
+    C1_START --> SHOW
+    SHOW -- да --> POK --> E
+    SHOW -- нет --> PERR --> E
+```

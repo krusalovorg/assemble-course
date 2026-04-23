@@ -1,0 +1,71 @@
+MERMAID (ГОСТ-стиль): часть 1
+
+```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "fontFamily": "Times New Roman",
+    "fontSize": "14px",
+    "primaryColor": "#ffffff",
+    "primaryTextColor": "#000000",
+    "primaryBorderColor": "#000000",
+    "lineColor": "#000000",
+    "secondaryColor": "#ffffff",
+    "tertiaryColor": "#ffffff",
+    "background": "#ffffff"
+  },
+  "flowchart": {
+    "curve": "basis",
+    "nodeSpacing": 22,
+    "rankSpacing": 28
+  }
+}}%%
+flowchart TD
+    S(["начало"])
+    IN[/"ввод a, b, c, d"/]
+    INIT["mov eax,a; mov ebx,b; mov ecx,c; mov edx,d; hasError=0"]
+    DCHK{"d == 0 ?"}
+    ERR_D["hasError=1; res=0"]
+    C1_END((1))
+
+    NUM1["imul eax,eax; eax=a*a"]
+    NUM2["imul eax,3; eax=3*a*a"]
+    NUM3["sub eax,40; eax=3*a*a-40"]
+    NUM4["imul ebx,3; ebx=3*b"]
+    NUM5["sub eax,ebx; num=3*a*a-40-3*b"]
+    SAVE["push eax (сохранить num)"]
+
+    PART1["mov eax,98; cdq; idiv d"]
+    PART2["mov edx,eax; part=98/d"]
+    REST["pop eax (восстановить num)"]
+
+    DEN1["imul ecx,4; ecx=4*c"]
+    DEN2["sub ecx,edx; den=4*c-98/d"]
+    DENCHK{"den == 0 ?"}
+    ERR_DEN["hasError=1; res=0"]
+
+    DIV["cdq; idiv ecx; res=num/den"]
+    C1_END_OK((1))
+
+    S --> IN --> INIT --> DCHK
+    DCHK -- да --> ERR_D --> C1_END
+    DCHK -- нет --> NUM1 --> NUM2 --> NUM3 --> NUM4 --> NUM5 --> SAVE
+    SAVE --> PART1 --> PART2 --> REST --> DEN1 --> DEN2 --> DENCHK
+    DENCHK -- да --> ERR_DEN --> C1_END
+    DENCHK -- нет --> DIV --> C1_END_OK
+```
+
+MERMAID (ГОСТ-стиль): часть 2
+
+```mermaid
+flowchart TD
+    C1_START((1))
+    SHOW{"hasError == 0 ?"}
+    OUT_OK[/"вывод: результат"/]
+    OUT_ERR[/"вывод: ошибка (деление на 0)"/]
+    E(["конец"])
+
+    C1_START --> SHOW
+    SHOW -- да --> OUT_OK --> E
+    SHOW -- нет --> OUT_ERR --> E
+```

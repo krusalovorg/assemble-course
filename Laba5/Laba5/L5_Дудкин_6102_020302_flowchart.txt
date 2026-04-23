@@ -1,0 +1,98 @@
+MERMAID (ГОСТ-стиль): часть 1
+
+```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "fontFamily": "Times New Roman",
+    "fontSize": "14px",
+    "primaryColor": "#ffffff",
+    "primaryTextColor": "#000000",
+    "primaryBorderColor": "#000000",
+    "lineColor": "#000000",
+    "secondaryColor": "#ffffff",
+    "tertiaryColor": "#ffffff",
+    "background": "#ffffff"
+  },
+  "flowchart": {
+    "curve": "basis",
+    "nodeSpacing": 22,
+    "rankSpacing": 28
+  }
+}}%%
+flowchart TD
+    S(["начало"])
+    H["вывести заголовок и формулу"]
+    IN[/"ввод x0, x1, y0, y1, hx, hy"/]
+    CHK{"hx > 0 && hy > 0 && x1 >= x0 && y1 >= y0 ?"}
+    BAD[/"вывод: Некорректное значение"/]
+    E1(["конец"])
+
+    INIT["n=0; x=x0"]
+    XLOOP{"x <= x1 ?"}
+    YINIT["y=y0"]
+    YLOOP{"y <= y1 ?"}
+    NINC["n=n+1"]
+    C1_END((1))
+
+    YSTEP["y=y+hy"]
+    XSTEP["x=x+hx"]
+    PRINT_END[/"вывести границу таблицы"/]
+    PAUSE["system(pause)"]
+    E2(["конец"])
+
+    S --> H --> IN --> CHK
+    CHK -- да --> INIT --> XLOOP
+    CHK -- нет --> BAD --> E1
+
+    XLOOP -- да --> YINIT --> YLOOP
+    XLOOP -- нет --> PRINT_END --> PAUSE --> E2
+
+    YLOOP -- да --> NINC --> C1_END
+    YLOOP -- нет --> XSTEP --> XLOOP
+
+    C1_END --> YSTEP --> YLOOP
+```
+
+MERMAID (ГОСТ-стиль): часть 2
+
+```mermaid
+flowchart TD
+    C1_START((1))
+    CPP0["calcCpp(x,y,out): проверка x > 0 и y != 0"]
+    CPP1["sin(y), cos(x/2), tan(x/2): проверки корректности"]
+    CPP2["t1..t7; inner=t1+t2+t3+t4+t5+t6-t7"]
+    CPPCHK{"inner >= 0 и все значения конечны ?"}
+    CPPERR["cpp = '-'"]
+    CPPOK["cpp = форматированное значение out"]
+
+    ASM0["calcAsm(x,y): проверка x > 0 и y != 0"]
+    ASM1["вычислить sin(y); sin(y) != 0"]
+    ASM2["acc = x^(43/44) + sqrt(inner) + sin(y^(-2/3))"]
+    ASM3["acc += 5*e^(-2y/3) - cos(y^(2/3)) + e^cos(y) + 1/sin(y)"]
+    ASMCHK{"error == 0 и res конечен ?"}
+    ASMERR["asm = '-'"]
+    ASMOK["asm = форматированное значение res"]
+
+    ROW[/"вывести строку таблицы: n, x, y, cpp, asm"/]
+    C2_END((2))
+
+    C1_START --> CPP0 --> CPP1 --> CPP2 --> CPPCHK
+    CPPCHK -- да --> CPPOK --> ASM0
+    CPPCHK -- нет --> CPPERR --> ASM0
+
+    ASM0 --> ASM1 --> ASM2 --> ASM3 --> ASMCHK
+    ASMCHK -- да --> ASMOK --> ROW --> C2_END
+    ASMCHK -- нет --> ASMERR --> ROW --> C2_END
+```
+
+MERMAID (ГОСТ-стиль): часть 3
+
+```mermaid
+flowchart TD
+    C2_START((2))
+    BACK["возврат к циклу по y в части 1"]
+    C1_LINK((1))
+
+    C2_START --> BACK --> C1_LINK
+```

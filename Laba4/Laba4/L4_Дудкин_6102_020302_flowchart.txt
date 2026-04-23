@@ -1,0 +1,75 @@
+MERMAID (ГОСТ-стиль): часть 1
+
+```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "fontFamily": "Times New Roman",
+    "fontSize": "14px",
+    "primaryColor": "#ffffff",
+    "primaryTextColor": "#000000",
+    "primaryBorderColor": "#000000",
+    "lineColor": "#000000",
+    "secondaryColor": "#ffffff",
+    "tertiaryColor": "#ffffff",
+    "background": "#ffffff"
+  },
+  "flowchart": {
+    "curve": "basis",
+    "nodeSpacing": 22,
+    "rankSpacing": 28
+  }
+}}%%
+flowchart TD
+    S(["начало"])
+    IN[/"ввод a, b"/]
+    INIT["finit; инициализация FPU"]
+
+    P1["fild 42; fldpi; fmulp -> T=42*pi"]
+    P2["fld b; fsin; fsubp -> T=T-sin(b)"]
+    P3["fld b; fcos; fsubp -> T=T-cos(b)"]
+    P4["fld a; fptan; fstp st(0); fsubp -> T=T-tg(a)"]
+
+    CTG_PREP["fld a; fptan; fstp st(0); st0=tg(a)"]
+    TGCHK{"tg(a) == 0 ?"}
+    ERR_TG["error=1; finit; fldz; res=0"]
+    C1_END_ERR((1))
+
+    CTG_CALC["fld1; fdivrp -> ctg(a)=1/tg(a)"]
+    CTG_SUB["fsubp -> T=T-ctg(a)"]
+
+    NUM["fld a; fld b; fild 42; fmulp; faddp -> N=42*b+a"]
+    DEN["fld b; fld a; fild 42; fmulp; fsubrp -> D=42*a-b"]
+    DENCHK{"D == 0 ?"}
+    ERR_DEN["error=2; finit; fldz; res=0"]
+
+    FRAC["fdivp -> Q=N/D"]
+    PI_MUL["fldpi; fmulp -> P=pi*Q"]
+    RES["fsubp -> res=T-P; fstp res"]
+    C1_END_OK((1))
+
+    S --> IN --> INIT --> P1 --> P2 --> P3 --> P4 --> CTG_PREP --> TGCHK
+    TGCHK -- да --> ERR_TG --> C1_END_ERR
+    TGCHK -- нет --> CTG_CALC --> CTG_SUB --> NUM --> DEN --> DENCHK
+    DENCHK -- да --> ERR_DEN --> C1_END_ERR
+    DENCHK -- нет --> FRAC --> PI_MUL --> RES --> C1_END_OK
+```
+
+MERMAID (ГОСТ-стиль): часть 2
+
+```mermaid
+flowchart TD
+    C1_START((1))
+    E1{"error == 1 ?"}
+    OUT1[/"вывод: ошибка tg(a)=0"/]
+    E2{"error == 2 ?"}
+    OUT2[/"вывод: ошибка 42*a-b=0"/]
+    OUT_OK[/"вывод: ASM res"/]
+    E(["конец"])
+
+    C1_START --> E1
+    E1 -- да --> OUT1 --> E
+    E1 -- нет --> E2
+    E2 -- да --> OUT2 --> E
+    E2 -- нет --> OUT_OK --> E
+```
