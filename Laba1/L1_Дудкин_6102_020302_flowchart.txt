@@ -2,7 +2,8 @@ MERMAID (ГОСТ-стиль): часть 1
 
 ```mermaid
 %%{init: {
-  "theme": "base",
+  "securityLevel": "loose",
+  "theme": "neutral",
   "themeVariables": {
     "fontFamily": "Times New Roman",
     "fontSize": "14px",
@@ -15,37 +16,41 @@ MERMAID (ГОСТ-стиль): часть 1
     "background": "#ffffff"
   },
   "flowchart": {
-    "curve": "basis",
+    "curve": "stepBefore",
+    "htmlLabels": true,
     "nodeSpacing": 22,
     "rankSpacing": 28
   }
 }}%%
 flowchart TD
     S(["начало"])
-    IN[/"ввод a, b, c, d"/]
-    INIT["mov eax,a; mov ebx,b; mov ecx,c; mov edx,d; hasError=0"]
+    IN[/"<div style='width:220px;text-align:center'>a, b, c, d</div>"/]
+    INIT["<div style='width:220px;text-align:center'>mov eax,a; mov ebx,b; mov ecx,c; mov edx,d; mov hasError,0</div>"]
     DCHK{"d == 0 ?"}
-    ERR_D["hasError=1; res=0"]
+    ERR_D["<div style='width:220px;text-align:center'>mov hasError,1; mov res,0</div>"]
     C1_END((1))
 
-    NUM1["imul eax,eax; eax=a*a"]
-    NUM2["imul eax,3; eax=3*a*a"]
-    NUM3["sub eax,40; eax=3*a*a-40"]
-    NUM4["imul ebx,3; ebx=3*b"]
-    NUM5["sub eax,ebx; num=3*a*a-40-3*b"]
-    SAVE["push eax (сохранить num)"]
+    NUM1["<div style='width:220px;text-align:center'>imul eax,eax</div>"]
+    NUM2["<div style='width:220px;text-align:center'>imul eax,3</div>"]
+    NUM3["<div style='width:220px;text-align:center'>sub eax,40</div>"]
+    NUM4["<div style='width:220px;text-align:center'>imul ebx,3</div>"]
+    NUM5["<div style='width:220px;text-align:center'>sub eax,ebx</div>"]
+    SAVE["<div style='width:220px;text-align:center'>push eax</div>"]
 
-    PART1["mov eax,98; cdq; idiv d"]
-    PART2["mov edx,eax; part=98/d"]
-    REST["pop eax (восстановить num)"]
+    PART1["<div style='width:220px;text-align:center'>mov eax,98; cdq; idiv d</div>"]
+    PART2["<div style='width:220px;text-align:center'>mov edx,eax</div>"]
+    REST["<div style='width:220px;text-align:center'>pop eax</div>"]
 
-    DEN1["imul ecx,4; ecx=4*c"]
-    DEN2["sub ecx,edx; den=4*c-98/d"]
+    DEN1["<div style='width:220px;text-align:center'>imul ecx,4</div>"]
+    DEN2["<div style='width:220px;text-align:center'>sub ecx,edx</div>"]
     DENCHK{"den == 0 ?"}
-    ERR_DEN["hasError=1; res=0"]
+    ERR_DEN["<div style='width:220px;text-align:center'>mov hasError,1; mov res,0</div>"]
 
-    DIV["cdq; idiv ecx; res=num/den"]
+    DIV["<div style='width:220px;text-align:center'>cdq; idiv ecx; mov res,eax</div>"]
     C1_END_OK((1))
+
+    classDef block fill:#ffffff,stroke:#000000,color:#000000,stroke-width:1px;
+    class IN,INIT,ERR_D,NUM1,NUM2,NUM3,NUM4,NUM5,SAVE,PART1,PART2,REST,DEN1,DEN2,ERR_DEN,DIV block;
 
     S --> IN --> INIT --> DCHK
     DCHK -- да --> ERR_D --> C1_END
@@ -58,12 +63,36 @@ flowchart TD
 MERMAID (ГОСТ-стиль): часть 2
 
 ```mermaid
+%%{init: {
+  "securityLevel": "loose",
+  "theme": "neutral",
+  "themeVariables": {
+    "fontFamily": "Times New Roman",
+    "fontSize": "14px",
+    "primaryColor": "#ffffff",
+    "primaryTextColor": "#000000",
+    "primaryBorderColor": "#000000",
+    "lineColor": "#000000",
+    "secondaryColor": "#ffffff",
+    "tertiaryColor": "#ffffff",
+    "background": "#ffffff"
+  },
+  "flowchart": {
+    "curve": "stepBefore",
+    "htmlLabels": true,
+    "nodeSpacing": 22,
+    "rankSpacing": 28
+  }
+}}%%
 flowchart TD
     C1_START((1))
     SHOW{"hasError == 0 ?"}
-    OUT_OK[/"вывод: результат"/]
-    OUT_ERR[/"вывод: ошибка (деление на 0)"/]
+    OUT_OK[/"<div style='width:220px;text-align:center'>вывод: результат</div>"/]
+    OUT_ERR[/"<div style='width:220px;text-align:center'>вывод: ошибка (деление на 0)</div>"/]
     E(["конец"])
+
+    classDef block fill:#ffffff,stroke:#000000,color:#000000,stroke-width:1px;
+    class OUT_OK,OUT_ERR block;
 
     C1_START --> SHOW
     SHOW -- да --> OUT_OK --> E
