@@ -1,0 +1,55 @@
+MERMAID (ГОСТ-стиль): одна схема
+
+```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "fontFamily": "Times New Roman",
+    "fontSize": "12px",
+    "primaryColor": "#ffffff",
+    "primaryTextColor": "#000000",
+    "primaryBorderColor": "#000000",
+    "lineColor": "#000000",
+    "secondaryColor": "#ffffff",
+    "tertiaryColor": "#ffffff",
+    "background": "#ffffff"
+  },
+  "flowchart": {
+    "curve": "basis",
+    "nodeSpacing": 16,
+    "rankSpacing": 20,
+    "diagramPadding": 4,
+    "padding": 4
+  }
+}}%%
+flowchart TD
+    S(["начало"])
+    IN[/"ввод a, b, n"/]
+    P1["h = (b-a)/(2*n)"]
+    P2["sum_odd = 0; sum_even = 0"]
+    P3["i = 1"]
+    D1{"i < 2*n ?"}
+
+    L1["x = a + i*h"]
+    L2["y = f_asm(x)"]
+    D2{"i % 2 == 1 ?"}
+    L3["sum_odd += y"]
+    L4["sum_even += y"]
+    L5["i++"]
+
+    R1["y0 = f_asm(a); yN = f_asm(b)"]
+    R2["finit"]
+    R3["fld h; fld c3; fdiv"]
+    R4["fld y0; fadd yN"]
+    R5["fld sum_odd; fmul c4; fadd"]
+    R6["fld sum_even; fmul c2; fadd"]
+    R7["fmul; fstp result"]
+    OUT[/"вывод result"/]
+    E(["конец"])
+
+    S --> IN --> P1 --> P2 --> P3 --> D1
+    D1 -- да --> L1 --> L2 --> D2
+    D2 -- да --> L3 --> L5 --> D1
+    D2 -- нет --> L4 --> L5 --> D1
+    D1 -- нет --> R1 --> R2 --> R3 --> R4 --> R5 --> R6 --> R7 --> OUT --> E
+```

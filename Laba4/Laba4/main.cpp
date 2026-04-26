@@ -1,4 +1,4 @@
-#define _USE_MATH_DEFINES
+﻿#define _USE_MATH_DEFINES
 #include <cmath>
 #include <iostream>
 #include <string>
@@ -155,7 +155,7 @@ double calcCpp(double a, double b) {
     }
 
     return 42.0 * M_PI - std::sin(b) - std::cos(-b) - tgA - 1.0 / tgA
-        - M_PI * (42.0 * b + a) / denom;
+           - M_PI * (42.0 * b + a) / denom;
 }
 
 int main()

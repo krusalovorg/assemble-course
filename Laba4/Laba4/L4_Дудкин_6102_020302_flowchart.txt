@@ -16,43 +16,43 @@ MERMAID (ГОСТ-стиль): часть 1
   },
   "flowchart": {
     "curve": "basis",
-    "nodeSpacing": 22,
-    "rankSpacing": 28
+    "nodeSpacing": 24,
+    "rankSpacing": 30
   }
 }}%%
 flowchart TD
     S(["начало"])
     IN[/"ввод a, b"/]
-    INIT["finit; инициализация FPU"]
+    INIT["finit (инициализация FPU)"]
 
-    P1["fild 42; fldpi; fmulp -> T=42*pi"]
-    P2["fld b; fsin; fsubp -> T=T-sin(b)"]
-    P3["fld b; fcos; fsubp -> T=T-cos(b)"]
-    P4["fld a; fptan; fstp st(0); fsubp -> T=T-tg(a)"]
+    B1["fild 42; fldpi; fmulp -> T = 42*pi"]
+    B2["fld b; fsin; fsubp -> T = T - sin(b)"]
+    B3["fld b; fcos; fsubp -> T = T - cos(b)"]
+    B4["fld a; fptan; fstp st(0); fsubp -> T = T - tg(a)"]
 
-    CTG_PREP["fld a; fptan; fstp st(0); st0=tg(a)"]
-    TGCHK{"tg(a) == 0 ?"}
-    ERR_TG["error=1; finit; fldz; res=0"]
+    C_PREP["fld a; fptan; fstp st(0) -> tg(a)"]
+    C_CHK{"tg(a) == 0 ?"}
+    C_ERR["error = 1; finit; fldz; res = 0"]
     C1_END_ERR((1))
 
-    CTG_CALC["fld1; fdivrp -> ctg(a)=1/tg(a)"]
-    CTG_SUB["fsubp -> T=T-ctg(a)"]
+    C_CALC["fld1; fdivrp -> ctg(a) = 1/tg(a)"]
+    C_SUB["fsubp -> T = T - ctg(a)"]
 
-    NUM["fld a; fld b; fild 42; fmulp; faddp -> N=42*b+a"]
-    DEN["fld b; fld a; fild 42; fmulp; fsubrp -> D=42*a-b"]
-    DENCHK{"D == 0 ?"}
-    ERR_DEN["error=2; finit; fldz; res=0"]
+    N1["fld a; fld b; fild 42; fmulp; faddp -> N = 42*b + a"]
+    D1["fld b; fld a; fild 42; fmulp; fsubrp -> D = 42*a - b"]
+    D_CHK{"D == 0 ?"}
+    D_ERR["error = 2; finit; fldz; res = 0"]
 
-    FRAC["fdivp -> Q=N/D"]
-    PI_MUL["fldpi; fmulp -> P=pi*Q"]
-    RES["fsubp -> res=T-P; fstp res"]
+    Q1["fdivp -> Q = N/D"]
+    P1["fldpi; fmulp -> P = pi*Q"]
+    R1["fsubp -> res = T - P; fstp res"]
     C1_END_OK((1))
 
-    S --> IN --> INIT --> P1 --> P2 --> P3 --> P4 --> CTG_PREP --> TGCHK
-    TGCHK -- да --> ERR_TG --> C1_END_ERR
-    TGCHK -- нет --> CTG_CALC --> CTG_SUB --> NUM --> DEN --> DENCHK
-    DENCHK -- да --> ERR_DEN --> C1_END_ERR
-    DENCHK -- нет --> FRAC --> PI_MUL --> RES --> C1_END_OK
+    S --> IN --> INIT --> B1 --> B2 --> B3 --> B4 --> C_PREP --> C_CHK
+    C_CHK -- да --> C_ERR --> C1_END_ERR
+    C_CHK -- нет --> C_CALC --> C_SUB --> N1 --> D1 --> D_CHK
+    D_CHK -- да --> D_ERR --> C1_END_ERR
+    D_CHK -- нет --> Q1 --> P1 --> R1 --> C1_END_OK
 ```
 
 MERMAID (ГОСТ-стиль): часть 2
@@ -61,10 +61,10 @@ MERMAID (ГОСТ-стиль): часть 2
 flowchart TD
     C1_START((1))
     E1{"error == 1 ?"}
-    OUT1[/"вывод: ошибка tg(a)=0"/]
+    OUT1[/"вывод: ошибка tg(a) == 0"/]
     E2{"error == 2 ?"}
-    OUT2[/"вывод: ошибка 42*a-b=0"/]
-    OUT_OK[/"вывод: ASM res"/]
+    OUT2[/"вывод: ошибка 42*a - b == 0"/]
+    OUT_OK[/"вывод: ASM result"/]
     E(["конец"])
 
     C1_START --> E1

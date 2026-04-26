@@ -1,0 +1,67 @@
+MERMAID (ГОСТ-стиль): часть 1
+
+```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "fontFamily": "Times New Roman",
+    "fontSize": "12px",
+    "primaryColor": "#ffffff",
+    "primaryTextColor": "#000000",
+    "primaryBorderColor": "#000000",
+    "lineColor": "#000000",
+    "secondaryColor": "#ffffff",
+    "tertiaryColor": "#ffffff",
+    "background": "#ffffff"
+  },
+  "flowchart": {
+    "curve": "basis",
+    "nodeSpacing": 16,
+    "rankSpacing": 20,
+    "diagramPadding": 4,
+    "padding": 4
+  }
+}}%%
+flowchart TD
+    S(["начало"])
+    IN[/"ввод x, n"/]
+    D0{"n >= 0 ?"}
+    EERR[/"вывод ошибки"/]
+    E0(["конец"])
+
+    P1["delta = x - 1"]
+    P2["term = 1; sum = 1; i = 1"]
+    D1{"n == 0 ?"}
+    OUT0[/"sums[0] = 1; вывод результата"/]
+    E1(["конец"])
+
+    P3["n_minus_1 = n - 1"]
+    P4["ecx = n_minus_1"]
+    C1((1))
+
+    S --> IN --> D0
+    D0 -- да --> P1 --> P2 --> D1
+    D0 -- нет --> EERR --> E0
+    D1 -- да --> OUT0 --> E1
+    D1 -- нет --> P3 --> P4 --> C1
+```
+
+MERMAID (ГОСТ-стиль): часть 2
+
+```mermaid
+flowchart TD
+    C1S((1))
+    L1["term = term * delta"]
+    L2["term = term / i"]
+    L3["sum = sum + term"]
+    L4["sums[i] = sum"]
+    L5["i = i + 1"]
+    L6["ecx = ecx - 1"]
+    D2{"ecx >= 0 ?"}
+    OUT[/"вывод таблицы и итогов"/]
+    E(["конец"])
+
+    C1S --> L1 --> L2 --> L3 --> L4 --> L5 --> L6 --> D2
+    D2 -- да --> C1S
+    D2 -- нет --> OUT --> E
+```

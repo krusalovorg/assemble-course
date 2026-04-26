@@ -1,0 +1,59 @@
+MERMAID (наглядная схема вычисления)
+
+```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "fontFamily": "Times New Roman",
+    "fontSize": "14px",
+    "primaryColor": "#ffffff",
+    "primaryTextColor": "#000000",
+    "primaryBorderColor": "#000000",
+    "lineColor": "#000000",
+    "secondaryColor": "#ffffff",
+    "tertiaryColor": "#ffffff",
+    "background": "#ffffff"
+  },
+  "flowchart": {
+    "curve": "basis",
+    "nodeSpacing": 28,
+    "rankSpacing": 34
+  }
+}}%%
+flowchart TD
+    S(["начало"])
+    IN_TEXT[/"Введите значения<br/>a и b"/]
+    IN_VAL[/"a, b"/]
+    C1{"a > b"}
+
+    C2{"a < b"}
+    EQ["x = -a"]
+
+    BCHK{"b == 0"}
+    X1["x = a / b - a"]
+
+    D["d = a + b"]
+    DCHK{"d == 0"}
+    X2["x = (a*b - 5) / (a + b)"]
+
+    ERR[/"ошибка:<br/>деление на 0"/]
+    OUT[/"x"/]
+    E(["конец"])
+
+    S --> IN_TEXT --> IN_VAL --> C1
+
+    C1 -- да --> BCHK
+    C1 -- нет --> C2
+
+    BCHK -- да --> ERR
+    BCHK -- нет --> X1 --> OUT
+
+    C2 -- да --> D --> DCHK
+    C2 -- нет --> EQ --> OUT
+
+    DCHK -- да --> ERR
+    DCHK -- нет --> X2 --> OUT
+
+    ERR --> E
+    OUT --> E
+```

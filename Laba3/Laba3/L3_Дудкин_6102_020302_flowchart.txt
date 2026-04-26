@@ -1,4 +1,4 @@
-MERMAID (ГОСТ-стиль): часть 1
+MERMAID (ГОСТ-стиль): схема алгоритма на языке Ассемблера
 
 ```mermaid
 %%{init: {
@@ -16,93 +16,39 @@ MERMAID (ГОСТ-стиль): часть 1
   },
   "flowchart": {
     "curve": "basis",
-    "nodeSpacing": 22,
-    "rankSpacing": 28
+    "nodeSpacing": 26,
+    "rankSpacing": 32
   }
 }}%%
 flowchart TD
     S(["начало"])
-    MENU["printMenu()"]
-    IN_N[/"ввод n"/]
-    NCHK{"n <= 0 ?"}
-    THROW["throw invalid_argument"]
-    C2_END_ERR((2))
-
-    ALLOC["arr = new int[n]"]
-    IINIT["i = 0"]
-    ICHK{"i < n ?"}
-    IN_ARR[/"ввод arr[i]"/]
-    SAVE["arr[i] = v"]
-    INCI["i = i + 1"]
-    C1_END((1))
-
-    S --> MENU --> IN_N --> NCHK
-    NCHK -- да --> THROW --> C2_END_ERR
-    NCHK -- нет --> ALLOC --> IINIT --> ICHK
-    ICHK -- да --> IN_ARR --> SAVE --> INCI --> ICHK
-    ICHK -- нет --> C1_END
-```
-
-MERMAID (ГОСТ-стиль): часть 2
-
-```mermaid
-flowchart TD
-    C1_START((1))
-    CALL_ASM["вызов calc(arr,n)"]
-    C3_END((3))
-
-    C3_START((3))
-    OUT_ASM[/"вывод ASM result"/]
-    CALL_CPP["вызов calcCpp(arr,n)"]
-    OUT_CPP[/"вывод CPP result"/]
-    FREE["delete[] arr"]
-    PAUSE["system('pause')"]
-    RET0["return 0"]
-    E(["конец"])
-
-    C2_START_ERR((2))
-    TYPE_ERR{"invalid_argument ?"}
-    CATCH_INV["catch invalid_argument"]
-    CATCH_EX["catch exception"]
-    OUT_ERR[/"вывод e.what()"/]
-    PAUSE_ERR["system('pause')"]
-    RET_ERR["return 0"]
-    E_ERR(["конец"])
-
-    C1_START --> CALL_ASM --> C3_END
-    C3_START --> OUT_ASM --> CALL_CPP --> OUT_CPP --> FREE --> PAUSE --> RET0 --> E
-
-    C2_START_ERR --> TYPE_ERR
-    TYPE_ERR -- да --> CATCH_INV --> OUT_ERR --> PAUSE_ERR --> RET_ERR --> E_ERR
-    TYPE_ERR -- нет --> CATCH_EX --> OUT_ERR
-```
-
-MERMAID (ГОСТ-стиль): часть 3 (подпрограмма calc, ASM)
-
-```mermaid
-flowchart TD
-    S3(["начало calc(arr,n)"])
-    INIT1["xor esi,esi; i=0"]
-    INIT2["xor eax,eax; sum=0"]
-    INIT3["mov ebx,arr; mov ecx,n"]
-    N0{"ecx == 0 ?"}
-    RET0["result = eax; return result"]
+    IN[/"n, arr"/]
+    INIT1["xor esi, esi<br/>esi = 0"]
+    INIT2["xor eax, eax<br/>eax = 0"]
+    INIT3["mov ebx, arr<br/>mov ecx, n"]
+    EMPTY{"ecx == 0"}
+    C1((1))
 
     LOOP["begin_loop"]
-    ODD{"(esi & 1) != 0 ?"}
-    ADD["add eax,[ebx + esi*4]"]
-    NEXT["inc esi"]
-    DEC["loop: ecx=ecx-1"]
-    CONT{"ecx != 0 ?"}
-    DONE["mov result,eax"]
-    E3(["конец calc"])
+    TEST["test esi, 1"]
+    ODD{"(esi & 1) != 0"}
+    ADD["add eax, [ebx + esi*4]"]
+    SKIP["next"]
+    INC["inc esi"]
+    LOOPCMD["loop begin_loop<br/>ecx = ecx - 1"]
+    CONT{"ecx != 0"}
+    DONE["mov result, eax"]
+    OUT[/"result"/]
+    E(["конец"])
 
-    S3 --> INIT1 --> INIT2 --> INIT3 --> N0
-    N0 -- да --> RET0 --> E3
-    N0 -- нет --> LOOP --> ODD
-    ODD -- да --> ADD --> NEXT --> DEC --> CONT
-    ODD -- нет --> NEXT --> DEC --> CONT
-    CONT -- да --> ODD
-    CONT -- нет --> DONE
-    DONE --> E3
+    S --> IN --> INIT1 --> INIT2 --> INIT3 --> EMPTY
+    EMPTY -- да --> DONE
+    EMPTY -- нет --> C1
+
+    C1 --> LOOP --> TEST --> ODD
+    ODD -- да --> ADD --> SKIP
+    ODD -- нет --> SKIP
+    SKIP --> INC --> LOOPCMD --> CONT
+    CONT -- да --> C1
+    CONT -- нет --> DONE --> OUT --> E
 ```

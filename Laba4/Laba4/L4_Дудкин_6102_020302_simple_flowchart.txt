@@ -1,0 +1,43 @@
+MERMAID (наглядная схема вычисления)
+
+```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "fontFamily": "Times New Roman",
+    "fontSize": "14px",
+    "primaryColor": "#ffffff",
+    "primaryTextColor": "#000000",
+    "primaryBorderColor": "#000000",
+    "lineColor": "#000000",
+    "secondaryColor": "#ffffff",
+    "tertiaryColor": "#ffffff",
+    "background": "#ffffff"
+  },
+  "flowchart": {
+    "curve": "basis",
+    "nodeSpacing": 28,
+    "rankSpacing": 34
+  }
+}}%%
+flowchart TD
+    S(["начало"])
+    IN[/"a, b"/]
+    C1["T = 42*pi - sin(b) - cos(-b) - tg(a)"]
+    CHK_TG{"tg(a) == 0 ?"}
+    ERR1[/"ошибка; res = 0"/]
+    C2["T = T - ctg(a)"]
+    C3["N = 42*b + a"]
+    C4["D = 42*a - b"]
+    CHK_D{"D == 0 ?"}
+    ERR2[/"ошибка; res = 0"/]
+    C5["R = T - pi*(N/D)"]
+    OUT[/"R"/]
+    E(["конец"])
+
+    S --> IN --> C1 --> CHK_TG
+    CHK_TG -- да --> ERR1 --> E
+    CHK_TG -- нет --> C2 --> C3 --> C4 --> CHK_D
+    CHK_D -- да --> ERR2 --> E
+    CHK_D -- нет --> C5 --> OUT --> E
+```

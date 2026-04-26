@@ -23,57 +23,73 @@ MERMAID (ГОСТ-стиль): часть 1
 flowchart TD
     S(["начало"])
     IN[/"ввод a, b"/]
-    INIT["mov ecx,a; mov ebx,b; mov esi,hasError; hasError=0"]
-    CMP{"cmp ecx, ebx"}
+    LOAD["mov ecx,a; mov ebx,b; mov esi,hasError"]
+    CLR["mov byte ptr[esi],0"]
+    CMP{"cmp ecx,ebx"}
 
-    AB_DZ{"b == 0"}
-    AB_DIV["cdq; idiv ebx; eax = a/b"]
-    AB_SUB["sub eax, ecx; x = a/b-a"]
+    EQ1["mov eax,ecx"]
+    EQ2["neg eax; x=-a"]
+    OK1((1))
 
-    EQ_RES["mov eax, ecx; neg eax; x = -a"]
+    GT1["mov eax,ecx"]
+    GTCHK{"ebx == 0"}
+    GTCDQ["cdq; edx:eax=a"]
+    GTDIV["idiv ebx; eax=a/b"]
+    GTSUB["sub eax,ecx; x=a/b-a"]
+    ERR1((2))
 
-    SM_MUL["mov eax, ecx; imul eax, ebx; a*b"]
-    SM_OV{"OF == 1"}
-    SM_SUB["sub eax, 5; num = a*b-5"]
-    SM_DEN["mov edi, ecx; add edi, ebx; den = a+b"]
-    C2_END((2))
+    LT1["mov eax,ecx"]
+    LT2["imul eax,ebx; eax=a*b"]
+    LTOV{"OF == 1"}
+    LT3["sub eax,5; eax=a*b-5"]
+    LT4["mov edi,ecx; add edi,ebx; edi=a+b"]
+    CONT1((3))
 
-    ERR_ZERO["xor eax, eax; hasError=1"]
-    C1_END((1))
+    S --> IN --> LOAD --> CLR --> CMP
+    CMP -- "==" --> EQ1 --> EQ2 --> OK1
+    CMP -- ">" --> GT1 --> GTCHK
+    CMP -- "<" --> LT1 --> LT2 --> LTOV
 
-    S --> IN --> INIT --> CMP
-    CMP -- ">" --> AB_DZ
-    CMP -- "==" --> EQ_RES --> C1_END
-    CMP -- "<" --> SM_MUL
+    GTCHK -- да --> ERR1
+    GTCHK -- нет --> GTCDQ --> GTDIV --> GTSUB --> OK1
 
-    AB_DZ -- да --> ERR_ZERO --> C1_END
-    AB_DZ -- нет --> AB_DIV --> AB_SUB --> C1_END
-
-    SM_MUL --> SM_OV
-    SM_OV -- да --> ERR_ZERO
-    SM_OV -- нет --> SM_SUB --> SM_DEN --> C2_END
+    LTOV -- да --> ERR1
+    LTOV -- нет --> LT3 --> LT4 --> CONT1
 ```
 
 MERMAID (ГОСТ-стиль): часть 2
 
 ```mermaid
 flowchart TD
-    C2_START((2))
-    C1_START((1))
+    CONT2((3))
+    DENCHK{"edi == 0"}
+    CDQ2["cdq; edx:eax=a*b-5"]
+    DIV2["idiv edi; x=(a*b-5)/(a+b)"]
+    OK2((1))
+    ERR2((2))
 
-    SM_DZ{"den == 0"}
-    SM_DIV["cdq; idiv edi; x = (a*b-5)/(a+b)"]
+    CONT2 --> DENCHK
+    DENCHK -- да --> ERR2
+    DENCHK -- нет --> CDQ2 --> DIV2 --> OK2
+```
 
-    SHOW{"asmError == 0"}
-    POK[/"вывести ASM: result"/]
-    PERR[/"вывести ASM: ошибка (деление на 0 или overflow)"/]
+MERMAID (ГОСТ-стиль): часть 3
+
+```mermaid
+flowchart TD
+    OK3((1))
+    SAVE["res = eax"]
+    CHECK{"hasError == 0"}
+    OUT_OK[/"вывод ASM: res"/]
+    OUT_ERR[/"вывод ASM: ошибка"/]
     E(["конец"])
 
-    C2_START --> SM_DZ
-    SM_DZ -- да --> C1_START
-    SM_DZ -- нет --> SM_DIV --> C1_START
+    ERR3((2))
+    ERREAX["xor eax,eax; x=0"]
+    ERRFLAG["mov byte ptr[esi],1; hasError=1"]
 
-    C1_START --> SHOW
-    SHOW -- да --> POK --> E
-    SHOW -- нет --> PERR --> E
+    OK3 --> SAVE --> CHECK
+    ERR3 --> ERREAX --> ERRFLAG --> SAVE
+    CHECK -- да --> OUT_OK --> E
+    CHECK -- нет --> OUT_ERR --> E
 ```

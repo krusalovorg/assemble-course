@@ -5,7 +5,7 @@ MERMAID (ГОСТ-стиль): часть 1
   "theme": "base",
   "themeVariables": {
     "fontFamily": "Times New Roman",
-    "fontSize": "14px",
+    "fontSize": "12px",
     "primaryColor": "#ffffff",
     "primaryTextColor": "#000000",
     "primaryBorderColor": "#000000",
@@ -15,43 +15,33 @@ MERMAID (ГОСТ-стиль): часть 1
     "background": "#ffffff"
   },
   "flowchart": {
-    "curve": "basis",
-    "nodeSpacing": 22,
-    "rankSpacing": 28
+    "curve": "stepBefore",
+    "nodeSpacing": 14,
+    "rankSpacing": 18,
+    "diagramPadding": 4,
+    "padding": 4
   }
 }}%%
 flowchart TD
     S(["начало"])
-    H["вывести заголовок и формулу"]
-    IN[/"ввод x0, x1, y0, y1, hx, hy"/]
-    CHK{"hx > 0 && hy > 0 && x1 >= x0 && y1 >= y0 ?"}
-    BAD[/"вывод: Некорректное значение"/]
+    IN[/"ввод x, y"/]
+    D0{"x > 0 && y != 0 && sin(y) != 0 && cos(x/2) != 0 ?"}
+    BAD[/"вывод: значение не определено"/]
     E1(["конец"])
 
-    INIT["n=0; x=x0"]
-    XLOOP{"x <= x1 ?"}
-    YINIT["y=y0"]
-    YLOOP{"y <= y1 ?"}
-    NINC["n=n+1"]
+    A1["a1 = x^(43/44)"]
+    A2["a2 = (1/2)^(-x/4)"]
+    A3["a3 = x^(x/5)"]
+    A4["a4 = |cos(x/2)|^(-2/3)"]
+    A5["a5 = e^sin(x)"]
+    A6["a6 = |sin(x/2)|^(2/3)"]
+    A7["a7 = (1/2)ln(x/2)"]
+    A8["a8 = |tg(x/2)|^(2/3)"]
     C1_END((1))
 
-    YSTEP["y=y+hy"]
-    XSTEP["x=x+hx"]
-    PRINT_END[/"вывести границу таблицы"/]
-    PAUSE["system(pause)"]
-    E2(["конец"])
-
-    S --> H --> IN --> CHK
-    CHK -- да --> INIT --> XLOOP
-    CHK -- нет --> BAD --> E1
-
-    XLOOP -- да --> YINIT --> YLOOP
-    XLOOP -- нет --> PRINT_END --> PAUSE --> E2
-
-    YLOOP -- да --> NINC --> C1_END
-    YLOOP -- нет --> XSTEP --> XLOOP
-
-    C1_END --> YSTEP --> YLOOP
+    S --> IN --> D0
+    D0 -- да --> A1 --> A2 --> A3 --> A4 --> A5 --> A6 --> A7 --> A8 --> C1_END
+    D0 -- нет --> BAD --> E1
 ```
 
 MERMAID (ГОСТ-стиль): часть 2
@@ -59,31 +49,21 @@ MERMAID (ГОСТ-стиль): часть 2
 ```mermaid
 flowchart TD
     C1_START((1))
-    CPP0["calcCpp(x,y,out): проверка x > 0 и y != 0"]
-    CPP1["sin(y), cos(x/2), tan(x/2): проверки корректности"]
-    CPP2["t1..t7; inner=t1+t2+t3+t4+t5+t6-t7"]
-    CPPCHK{"inner >= 0 и все значения конечны ?"}
-    CPPERR["cpp = '-'"]
-    CPPOK["cpp = форматированное значение out"]
-
-    ASM0["calcAsm(x,y): проверка x > 0 и y != 0"]
-    ASM1["вычислить sin(y); sin(y) != 0"]
-    ASM2["acc = x^(43/44) + sqrt(inner) + sin(y^(-2/3))"]
-    ASM3["acc += 5*e^(-2y/3) - cos(y^(2/3)) + e^cos(y) + 1/sin(y)"]
-    ASMCHK{"error == 0 и res конечен ?"}
-    ASMERR["asm = '-'"]
-    ASMOK["asm = форматированное значение res"]
-
-    ROW[/"вывести строку таблицы: n, x, y, cpp, asm"/]
+    B1["inner = a2 + a3 + a4 + a5 + a6 + a7 - a8"]
+    D5{"inner >= 0 ?"}
+    B2["b1 = sqrt(inner)"]
+    B3["b2 = sin(y^(-2/3))"]
+    B4["b3 = 5*e^(-2y/3)"]
+    B5["b4 = cos(y^(2/3))"]
+    B6["b5 = e^cos(y)"]
+    B7["b6 = csc(y)"]
     C2_END((2))
+    BAD2[/"вывод: значение не определено"/]
+    E2(["конец"])
 
-    C1_START --> CPP0 --> CPP1 --> CPP2 --> CPPCHK
-    CPPCHK -- да --> CPPOK --> ASM0
-    CPPCHK -- нет --> CPPERR --> ASM0
-
-    ASM0 --> ASM1 --> ASM2 --> ASM3 --> ASMCHK
-    ASMCHK -- да --> ASMOK --> ROW --> C2_END
-    ASMCHK -- нет --> ASMERR --> ROW --> C2_END
+    C1_START --> B1 --> D5
+    D5 -- да --> B2 --> B3 --> B4 --> B5 --> B6 --> B7 --> C2_END
+    D5 -- нет --> BAD2 --> E2
 ```
 
 MERMAID (ГОСТ-стиль): часть 3
@@ -91,8 +71,9 @@ MERMAID (ГОСТ-стиль): часть 3
 ```mermaid
 flowchart TD
     C2_START((2))
-    BACK["возврат к циклу по y в части 1"]
-    C1_LINK((1))
+    R1["result = a1 + b1 + b2 + b3 - b4 + b5 + b6"]
+    OUT[/"вывод result"/]
+    E3(["конец"])
 
-    C2_START --> BACK --> C1_LINK
+    C2_START --> R1 --> OUT --> E3
 ```

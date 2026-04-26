@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <string>
 #include <clocale>
 #include <stdexcept>
@@ -51,7 +51,7 @@ int calcCpp(int* arr, int n) {
     return result;
 }
 
-int calc_asm(int* arr, int n) {
+int calc(int* arr, int n) {
     int result;
     __asm {
         xor esi, esi     ; индекс
@@ -74,31 +74,10 @@ int calc_asm(int* arr, int n) {
     return result;
 }
 
-int calc_cpp(int* arr, int n) {
-    int sum = 0;
-    for (int i = 1; i < n; i += 2) {
-        sum += arr[i];
-    }
-    return sum;
-}
-
-
-int main() {
+int main()
+{
     printMenu();
 
-    int n;
-    readInt(n, "n");
-
-    int* arr = new int[n];
-
-    for (int i = 0; i < n; i++) {
-        int v;
-        readInt(v, "arr[" + std::to_string(i) + "]");
-        arr[i] = v;
-    }
-
-    int asmRes = calc_asm(arr, n);
-    int cppRes = calc_cpp(arr, n);
     try {
         int n;
         readInt(n, "n (размер массива)");
@@ -115,7 +94,7 @@ int main() {
             arr[i] = v;
         }
 
-        std::cout << "ASM: " << calc_asm(arr, n) << std::endl;
+        std::cout << "ASM: " << calc(arr, n) << std::endl;
         std::cout << "CPP: " << calcCpp(arr, n) << std::endl;
 
         delete[] arr;
@@ -127,7 +106,6 @@ int main() {
         std::cerr << e.what() << std::endl;
     }
 
-    delete[] arr;
     system("pause");
     return 0;
 }

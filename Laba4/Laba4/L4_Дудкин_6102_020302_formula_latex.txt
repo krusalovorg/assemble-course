@@ -1,0 +1,7 @@
+\[
+X(a,b)=42\pi-\sin(b)-\cos(-b)-\tan(a)-\cot(a)-\pi\cdot\frac{42b+a}{42a-b}
+\]
+
+\[
+X(a,b)=42\pi-\sin(b)-\cos(-b)-\tan(a)-\frac{1}{\tan(a)}-\pi\cdot\frac{42b+a}{42a-b}
+\]

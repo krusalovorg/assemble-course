@@ -1,220 +1,230 @@
-﻿#include <iostream>
-#include <iomanip>
+﻿#define _USE_MATH_DEFINES
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+
+#include <Windows.h>
+#include <clocale>
 #include <cmath>
-#include <windows.h>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <stdexcept>
 
-using namespace std;
+/*
+  Лабораторная работа 7. Вариант 43.
+  y = sum_{n=0..inf} ((x - 1)^n / n!)
+*/
 
-void f_cpp(double x, double eps, int N, double& sum_out, int& iterations_out, double& delta_out, int& reason_out) {
-    if (N <= 0) {
-        sum_out = 0.0;
-        iterations_out = 0;
-        delta_out = 0.0;
-        reason_out = 1;
-        return;
-    }
-
-    const double x_plus_10 = x + 10.0;
-    double term = x_plus_10; // n=1
-    double sum = term;
-    double prevSum = 0.0;
-    int iterations = 1;
-    int reason = 1;
-
-    if (fabs(sum - prevSum) <= eps) {
-        reason = 0;
-    } else {
-        for (int n = 1; n < N; ++n) {
-            const double ratio = static_cast<double>(n) / (n + 1);
-            const double power = pow(ratio, n);
-            term = term * x_plus_10 * power; // переход от n к n+1
-            prevSum = sum;
-            sum += term;
-            ++iterations;
-
-            if (fabs(sum - prevSum) <= eps) {
-                reason = 0;
-                break;
-            }
-        }
-    }
-
-    sum_out = sum;
-    iterations_out = iterations;
-    delta_out = fabs(sum - prevSum);
-    reason_out = reason;
+inline bool finiteVal(double v) {
+    return std::isfinite(v) && !std::isnan(v);
 }
 
-// ASM-версия: вычисление ряда, передача x, eps, N как аргументов.
-void f_asm(double x, double eps, int N, double& sum_out, int& iterations_out, double& delta_out, int& reason_out) {
-    if (N <= 0) {
-        sum_out = 0.0;
-        iterations_out = 0;
-        delta_out = 0.0;
-        reason_out = 1;
-        return;
-    }
+void printHeader() {
+    std::setlocale(LC_ALL, "ru_RU");
+    std::cout << "\033[33m";
+    std::cout << "     Лабораторная работа ";
+    std::cout << "\033[1;31m07\033[33m\n";
+    std::cout << "\033[0m";
 
-    double x_plus_10 = x + 10.0;
-    double term = x_plus_10;   // a1
-    double sum = term;         // S1
-    double prevSum = 0.0;      // S0
-    double ratio = 0.0;
-    int n_local = 0;
-    int iterations = 1;
-    int reason = 1;
+    std::cout << "Группа: ";
+    std::cout << "\033[36m6102-020302D\033[0m\n";
 
-    if (fabs(sum - prevSum) <= eps) {
-        reason = 0;
-    } else {
-        for (int n = 1; n < N; ++n) {
-            n_local = n;
+    std::cout << "Студент: ";
+    std::cout << "\033[32mДудкин Егор Денисович\033[0m\n";
 
-            __asm {
-                finit
+    std::cout << "Вариант задания: ";
+    std::cout << "\033[1;31m43\033[0m\n\n";
 
-                // st(0) = n
-                fild dword ptr [n_local]
-
-                // st(0) = n+1, st(1) = n
-                mov eax, n_local
-                inc eax
-                mov n_local, eax
-                fild dword ptr [n_local]
-
-                // st(0) = n/(n+1)
-                fdivp st(1), st
-                fstp ratio
-            }
-
-            const double power = pow(ratio, n);
-            term = term * x_plus_10 * power;
-            prevSum = sum;
-            sum += term;
-            ++iterations;
-
-            if (fabs(sum - prevSum) <= eps) {
-                reason = 0;
-                break;
-            }
-        }
-    }
-
-    sum_out = sum;
-    iterations_out = iterations;
-    delta_out = fabs(sum - prevSum);
-    reason_out = reason;
+    std::cout << "\033[90m------------------------------------------------------------\033[0m\n";
+    std::cout << "\033[1mРяд\033[0m\n\n";
+    std::cout << "              inf    (x - 1)^n  \n";
+    std::cout << "  y = f(x) = SUM  (  ---------  )\n";
+    std::cout << "             n=0        n!\n\n";
+    std::cout << "\033[90m------------------------------------------------------------\033[0m\n\n";
 }
 
-double control_value(double x) {
-    const double x_plus_10 = x + 10.0;
-    if (fabs(x_plus_10) >= 2.718281828459045) {
-        return NAN;
+void readDouble(double& v, const char* prompt) {
+    while (true) {
+        std::cout << prompt;
+        if (std::cin >> v) {
+            return;
+        }
+        std::cout << "Ошибка ввода.\n";
+        std::cin.clear();
+        std::cin.ignore(10000, '\n');
     }
+}
 
+void readInt(int& v, const char* prompt) {
+    while (true) {
+        std::cout << prompt;
+        if (std::cin >> v && v >= 0) {
+            return;
+        }
+        std::cout << "Ошибка: N должно быть целым числом >= 0.\n";
+        std::cin.clear();
+        std::cin.ignore(10000, '\n');
+    }
+}
+
+double partialSumCppFormula(double x, int i) {
+    const double d = x - 1.0;
     double sum = 0.0;
-    int iterations = 0;
-    double delta = 0.0;
-    int reason = 1;
-    f_cpp(x, 1e-15, 2000, sum, iterations, delta, reason);
+
+    for (int n = 0; n <= i; ++n) {
+        double powPart = std::pow(d, n);
+        double fact = 1.0;
+        for (int k = 2; k <= n; ++k) {
+            fact *= static_cast<double>(k);
+        }
+        sum += powPart / fact;
+    }
+
+    if (!finiteVal(sum)) {
+        throw std::runtime_error("C++: получена некорректная частичная сумма.");
+    }
     return sum;
 }
 
+void calcSeriesAsm(double x, int n, double* sumsAsm) {
+    const double delta = x - 1.0;
+    static const double one = 1.0;
+
+    double term = 1.0;
+    double sum = 1.0;
+    int iLocal = 1;
+    int err = 0;
+    double* pOut = sumsAsm;
+
+    __asm {
+        finit
+        mov edi, pOut
+        fld qword ptr [sum]             ; st0 = sum
+        fstp qword ptr [edi]            ; sumsAsm[0] = 1
+
+        mov ecx, dword ptr [n]
+        cmp ecx, 0
+        jle _asm_done
+
+        add edi, 8                      ; &sumsAsm[1]
+
+    _asm_loop:
+        ; term = term * delta / iLocal
+        fld qword ptr [term]            ; st0 = term
+        fmul qword ptr [delta]          ; st0 = term * delta
+        fild dword ptr [iLocal]         ; st0 = i, st1 = term*delta
+        fdivp st(1), st(0)              ; st0 = new term
+        fst qword ptr [term]            ; term
+
+        ; sum += term
+        fadd qword ptr [sum]            ; st0 = term + sum
+        fst qword ptr [sum]             ; sum
+        fstp qword ptr [edi]            ; sumsAsm[i] = sum
+
+        add edi, 8
+        inc dword ptr [iLocal]
+        loop _asm_loop
+
+    _asm_done:
+        finit
+    }
+
+    if (err) {
+        throw std::runtime_error("ASM: ошибка при вычислении ряда.");
+    }
+    if (!finiteVal(term) || !finiteVal(sum)) {
+        throw std::runtime_error("ASM: некорректные значения ряда (переполнение/NaN).");
+    }
+}
+
+static void printBorder(int wi, int wr, int we) {
+    auto bar = [](int w) {
+        for (int j = 0; j < w + 2; ++j) {
+            std::cout << '-';
+        }
+    };
+
+    std::cout << '+';
+    bar(wi);
+    std::cout << '+';
+    bar(wr);
+    std::cout << '+';
+    bar(wr);
+    std::cout << '+';
+    bar(we);
+    std::cout << "+\n";
+}
+
 int main() {
-    SetConsoleCP(1251);
-    SetConsoleOutputCP(1251);
-
-    cout << "================================================================================\n";
-    cout << "Лабораторная работа №7\n";
-    cout << "Вариант 49\n";
-    cout << "================================================================================\n\n";
-
-    cout << "Исследуемый ряд:\n";
-    cout << "∞\n";
-    cout << "---\n";
-    cout << "\\         n!        n\n";
-    cout << " >     ------ * (x+10)\n";
-    cout << "/          n\n";
-    cout << "---       n\n";
-    cout << "n=1\n\n";
-
-    cout << "Рекуррентная формула: a(n+1) = a(n) * (x+10) * (n/(n+1))^n\n";
-    cout << "Радиус сходимости: R = e ≈ 2.71828\n";
-    cout << "Условие сходимости: |x+10| < e\n";
-    cout << "Условие остановки: |S(k+1)-S(k)| <= eps, либо k >= N\n\n";
+    std::cout << std::fixed << std::setprecision(15);
+    printHeader();
 
     double x = 0.0;
-    double eps = 0.0;
-    int N = 0;
+    int n = 0;
+    readDouble(x, "Введите x = ");
+    readInt(n, "Введите N (количество членов ряда до N включительно) = ");
 
-    cout << "Введите x: ";
-    while (!(cin >> x)) {
-        cin.clear();
-        cin.ignore(10000, '\n');
-        cout << "Ошибка! Введите число: ";
+    double* sumsCpp = nullptr;
+    double* sumsAsm = nullptr;
+
+    try {
+        sumsCpp = new double[n + 1];
+        sumsAsm = new double[n + 1];
+
+        for (int i = 0; i <= n; ++i) {
+            sumsCpp[i] = partialSumCppFormula(x, i);
+        }
+        calcSeriesAsm(x, n, sumsAsm);
+
+        const int wi = 4;
+        const int wr = 22;
+        const int we = 22;
+        const double exactRef = std::exp(x - 1.0);
+
+        std::cout << "\n\033[1mТаблица вычислений:\033[0m\n";
+        printBorder(wi, wr, we);
+        std::cout << "| " << std::setw(wi) << "i"
+                  << " | " << std::setw(wr) << "cpp"
+                  << " | " << std::setw(wr) << "asm"
+                  << " | " << std::setw(we) << "eps"
+                  << " |\n";
+        printBorder(wi, wr, we);
+
+        for (int i = 0; i <= n; ++i) {
+            const double eps = std::fabs(exactRef - sumsAsm[i]);
+            std::cout << "| " << std::setw(wi) << i
+                      << " | " << std::setw(wr) << sumsCpp[i]
+                      << " | " << std::setw(wr) << sumsAsm[i]
+                      << " | " << std::setw(we) << eps
+                      << " |\n";
+        }
+        printBorder(wi, wr, we);
+
+        const double exact = exactRef;
+        const double errCpp = std::fabs(exact - sumsCpp[n]);
+        const double errAsm = std::fabs(exact - sumsAsm[n]);
+        const double diff = std::fabs(sumsCpp[n] - sumsAsm[n]);
+
+        std::cout << "\nКонтроль по аналитической формуле y = exp(x - 1):\n";
+        std::cout << "Точное значение          : " << exact << "\n";
+        std::cout << "cpp (N)                  : " << sumsCpp[n] << "\n";
+        std::cout << "asm (N)                  : " << sumsAsm[n] << "\n";
+        std::cout << "|cpp - asm|              : " << diff << "\n";
+        std::cout << "|exact - cpp (N)|        : " << errCpp << "\n";
+        std::cout << "|exact - asm (N)|        : " << errAsm << "\n";
+
+        delete[] sumsCpp;
+        delete[] sumsAsm;
+        sumsCpp = nullptr;
+        sumsAsm = nullptr;
+    } catch (const std::exception& e) {
+        delete[] sumsCpp;
+        delete[] sumsAsm;
+        std::cout << "\n\033[1;31mОшибка:\033[0m " << e.what() << "\n";
+        system("pause");
+        return 1;
     }
-
-    cout << "Введите eps (>0): ";
-    while (!(cin >> eps) || eps <= 0.0) {
-        cin.clear();
-        cin.ignore(10000, '\n');
-        cout << "Ошибка! Введите положительное eps: ";
-    }
-
-    cout << "Введите ограничение по числу членов N (>0): ";
-    while (!(cin >> N) || N <= 0) {
-        cin.clear();
-        cin.ignore(10000, '\n');
-        cout << "Ошибка! Введите целое число N > 0: ";
-    }
-
-    const double x_plus_10 = x + 10.0;
-    const bool converges = (fabs(x_plus_10) < 2.718281828459045);
-    if (!converges) {
-        cout << "\nВНИМАНИЕ: |x+10| = " << fabs(x_plus_10) << " >= e.\n";
-        cout << "Ряд расходится, оценка погрешности относительно контрольного значения недоступна.\n\n";
-    }
-
-    double cppSum = 0.0;
-    int cppIter = 0;
-    double cppDelta = 0.0;
-    int cppReason = 1;
-
-    double asmSum = 0.0;
-    int asmIter = 0;
-    double asmDelta = 0.0;
-    int asmReason = 1;
-
-    f_cpp(x, eps, N, cppSum, cppIter, cppDelta, cppReason);
-    f_asm(x, eps, N, asmSum, asmIter, asmDelta, asmReason);
-    double exact = converges ? control_value(x) : NAN;
-
-    cout << "\n================================================================================\n";
-    cout << "Результаты вычислений\n";
-    cout << "================================================================================\n";
-    cout << fixed << setprecision(12);
-    cout << "C++: сумма = " << cppSum
-         << ", итерации = " << cppIter
-         << ", |Sk+1-Sk| = " << cppDelta
-         << ", причина остановки = " << (cppReason == 0 ? "eps" : "N") << "\n";
-    cout << "ASM: сумма = " << asmSum
-         << ", итерации = " << asmIter
-         << ", |Sk+1-Sk| = " << asmDelta
-         << ", причина остановки = " << (asmReason == 0 ? "eps" : "N") << "\n";
-
-    cout << scientific << setprecision(6);
-    cout << "|C++ - ASM| = " << fabs(cppSum - asmSum) << "\n";
-
-    if (converges) {
-        cout << "Контрольное значение (высокоточная сумма ряда): " << fixed << setprecision(12) << exact << "\n";
-        cout << scientific << setprecision(6);
-        cout << "|Control - C++| = " << fabs(exact - cppSum) << "\n";
-        cout << "|Control - ASM| = " << fabs(exact - asmSum) << "\n";
-    } else {
-        cout << "Контрольная погрешность не выводится (ряд расходится).\n";
-    }
-
-    cout << "================================================================================\n";
 
     system("pause");
     return 0;

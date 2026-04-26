@@ -1,0 +1,39 @@
+MERMAID (наглядная схема вычисления)
+
+```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "fontFamily": "Times New Roman",
+    "fontSize": "14px",
+    "primaryColor": "#ffffff",
+    "primaryTextColor": "#000000",
+    "primaryBorderColor": "#000000",
+    "lineColor": "#000000",
+    "secondaryColor": "#ffffff",
+    "tertiaryColor": "#ffffff",
+    "background": "#ffffff"
+  },
+  "flowchart": {
+    "curve": "basis",
+    "nodeSpacing": 28,
+    "rankSpacing": 34
+  }
+}}%%
+flowchart TD
+    S(["начало"])
+    IN_TEXT[/"Введите размер<br/>массива"/]
+    IN_N[/"n"/]
+    IN_ARR_TEXT[/"Введите элементы<br/>массива"/]
+    IN_ARR[/"arr"/]
+    INIT["i = 1<br/>sum = 0"]
+    COND{"i < n"}
+    ADD["sum = sum + arr[i]"]
+    STEP["i = i + 2"]
+    OUT[/"sum"/]
+    E(["конец"])
+
+    S --> IN_TEXT --> IN_N --> IN_ARR_TEXT --> IN_ARR --> INIT --> COND
+    COND -- да --> ADD --> STEP --> COND
+    COND -- нет --> OUT --> E
+```
